@@ -1,11 +1,14 @@
 import sys
 from PyQt5.QtWidgets import *
 from functools import partial
+import math
 
 class Main(QDialog):
     def __init__(self):
         super().__init__()
         self.init_ui()
+        self.buffer = ''
+        self.value_buffer = False
 
     def init_ui(self):
         main_layout = QVBoxLayout()
@@ -31,15 +34,29 @@ class Main(QDialog):
 
         for btn_text, row, col in buttons:
             button = QPushButton(btn_text)
-            if btn_text.isdigit() or btn_text in ['+', '-', '*', '/']:
+            if btn_text.isdigit():
                 button.clicked.connect(partial(self.number_button_clicked, btn_text))
             else:
+                if btn_text in ['+', '-', '*']:
+                    button.clicked.connect(partial(self.button_operation_clicked, btn_text))
+                if btn_text == '÷':
+                    button.clicked.connect(partial(self.button_operation_clicked, '/'))
                 if btn_text == '=':
                     button.clicked.connect(self.button_equal_clicked)
-                elif btn_text == 'C':
+                if btn_text == 'C':
                     button.clicked.connect(self.button_clear_clicked)
-                elif btn_text == '<-':
+                if btn_text == '<-':
                     button.clicked.connect(self.button_backspace_clicked)
+                if btn_text == '%':
+                    button.clicked.connect(partial(self.button_operation_clicked, btn_text))
+                if btn_text == 'CE':
+                    button.clicked.connect(self.button_ce_clicked)
+                if btn_text == '1/x':
+                    button.clicked.connect(self.button_inverse_clicked)
+                if btn_text == 'x²':
+                    button.clicked.connect(self.button_square_clicked)
+                if btn_text == '2√x':
+                    button.clicked.connect(self.button_square_root_clicked)
             grid_layout.addWidget(button, row, col)
 
         main_layout.addLayout(grid_layout)
@@ -60,22 +77,49 @@ class Main(QDialog):
         equation += operation
         self.equation.setText(equation)
 
+
     def button_equal_clicked(self):
-        equation = self.equation.text()
+        result = self.buffer
         try:
-            solution = str(eval(equation))
+            solution = str(eval(result))
             self.equation.setText(solution)  # 계산 결과를 해당 LineEdit에 표시
         except Exception as e:
             self.equation.setText("Error")
 
     def button_clear_clicked(self):
         self.equation.setText("")
-        self.solution.setText("")
 
     def button_backspace_clicked(self):
         equation = self.equation.text()
         equation = equation[:-1]
         self.equation.setText(equation)
+
+    def button_ce_clicked(self):
+        self.equation.setText("")
+
+    def button_inverse_clicked(self):
+        try:
+            value = float(self.equation.text())
+            result = 1 / value
+            self.equation.setText(str(result))
+        except ValueError:
+            self.equation.setText("Error")
+    
+    def button_square_clicked(self):
+        try:
+            value = float(self.equation.text())
+            result = value ** 2
+            self.equation.setText(str(result))
+        except ValueError:
+            self.equation.setText("Error")
+
+    def button_square_root_clicked(self):
+        try:
+            value = float(self.equation.text())
+            result = math.sqrt(value)
+            self.equation.setText(str(result))
+        except ValueError:
+            self.equation.setText("Error")
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
