@@ -37,8 +37,10 @@ class Main(QDialog):
             if btn_text.isdigit():
                 button.clicked.connect(partial(self.number_button_clicked, btn_text))
             else:
-                if btn_text in ['+', '-', '*']:
+                if btn_text in ['+', '-']:
                     button.clicked.connect(partial(self.button_operation_clicked, btn_text))
+                if btn_text == 'x':
+                    button.clicked.connect(partial(self.button_operation_clicked, '*'))
                 if btn_text == '÷':
                     button.clicked.connect(partial(self.button_operation_clicked, '/'))
                 if btn_text == '=':
@@ -57,6 +59,8 @@ class Main(QDialog):
                     button.clicked.connect(self.button_square_clicked)
                 if btn_text == '2√x':
                     button.clicked.connect(self.button_square_root_clicked)
+                if btn_text == '.':
+                    button.clicked.connect(self.dot_cal)
             grid_layout.addWidget(button, row, col)
 
         main_layout.addLayout(grid_layout)
@@ -67,6 +71,11 @@ class Main(QDialog):
     #################
     ### functions ###
     #################
+    def dot_cal(self):
+        equation = self.equation.text()
+        equation += '.'
+        self.equation.setText(equation)
+
     def number_button_clicked(self, num):
         equation = self.equation.text()
         equation += str(num)
@@ -74,14 +83,21 @@ class Main(QDialog):
 
     def button_operation_clicked(self, operation):
         equation = self.equation.text()
-        equation += operation
-        self.equation.setText(equation)
+        
+        # 현재 입력창에 값이 있을 때
+        if equation:
+            self.buffer = equation  # 입력창의 값을 버퍼에 저장
+            self.equation.setText("")  # 입력창 비우기
+        
+        self.buffer += operation  # 새로운 연산자 추가
 
 
     def button_equal_clicked(self):
-        result = self.buffer
+        current_text = self.equation.text()
+        equation = self.buffer + current_text  # 버퍼 값과 입력창의 값을 합침
+
         try:
-            solution = str(eval(result))
+            solution = str(eval(equation))
             self.equation.setText(solution)  # 계산 결과를 해당 LineEdit에 표시
         except Exception as e:
             self.equation.setText("Error")
